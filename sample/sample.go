@@ -9,14 +9,14 @@ import (
 	"log"
 	"os"
 
-	"github.com/wistler/aoc-2020/lib"
+	"github.com/wistler/aoc-2020/internal/vector"
 )
 
 // Sum returns sum of vectors
-func Sum(pts []lib.Vec) lib.Vec {
-	sum := lib.MakeVector(0, 0)
+func Sum(pts []vector.Vec) vector.Vec {
+	sum := vector.Make(0, 0)
 	for _, pt := range pts {
-		sum = sum.Add(pt)
+		sum.Add(pt)
 	}
 	return sum
 }
@@ -31,11 +31,11 @@ func main() {
 		log.Fatal("Need args. Usage: sample [1,2] [3,4]")
 	}
 
-	pts := make([]lib.Vec, len(args))
+	pts := make([]vector.Vec, len(args))
 
 	for i, arg := range args {
-		var x, y int
-		n, err := fmt.Sscanf(arg, "[%d,%d]", &x, &y)
+		var x, y float64
+		n, err := fmt.Sscanf(arg, "[%f,%f]", &x, &y)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -43,7 +43,7 @@ func main() {
 			log.Fatalf("Ill-formed Argument: %q\n", arg)
 		}
 
-		pts[i] = lib.MakeVector(x, y)
+		pts[i] = vector.Make(x, y)
 	}
 
 	log.Printf("Vectors = %v\n", pts)
