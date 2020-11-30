@@ -44,31 +44,28 @@ func (p Matrix) AsVec() (vector.Vec, error) {
 	return p.T()[0], nil
 }
 
-// // DotV returns dot product of each row of this matrix with given vector.
-// func (p Matrix) DotV(o vector.Vec) (vector.Vec, error) {
-// 	if len(p[0]) != len(o) {
-// 		return nil, errors.New("invalid operation: matrix and vector of different size")
-// 	}
-// 	sum := vector.Zero(len(p))
-// 	for i, v := range p {
-// 		s, err := v.Dot(o)
-// 		if err != nil {
-// 			return nil, err
-// 		}
-// 		sum[i] = s
-// 	}
-// 	return sum, nil
-// }
+// Sum performs element-wise addition and returns new matrix
+func (p Matrix) Sum(o Matrix) (Matrix, error) {
+	if !p.SameShape(o) {
+		return nil, fmt.Errorf("invalid operation: matrices size incompatible: %v.%v", p.ShapeString(), o.ShapeString())
+	}
+	M, N := p.Shape()
+	sum := Zero(M, N)
+	for i := 0; i < M; i++ {
+		for j := 0; j < N; j++ {
+			sum[i][j] = p[i][j] + o[i][j]
+		}
+	}
+	return sum, nil
+}
 
 // Dot returns matrix multiplication of 2 matrices
 // [MxN] * [N*P] => [MxP]
 func (p Matrix) Dot(o Matrix) (Matrix, error) {
-	M := len(p)
-	N := len(p[0])
-	O := len(o)
-	P := len(o[0])
+	M, N := p.Shape()
+	O, P := o.Shape()
 	if N != O {
-		return nil, fmt.Errorf("invalid operation: matrices size incompatible: [%vx%v].[%vx%v]", M, N, O, P)
+		return nil, fmt.Errorf("invalid operation: matrices size incompatible: %v.%v", p.ShapeString(), o.ShapeString())
 	}
 	var prod Matrix = make([]vector.Vec, M)
 	for i := 0; i < M; i++ {
@@ -84,16 +81,20 @@ func (p Matrix) Dot(o Matrix) (Matrix, error) {
 	return prod, nil
 }
 
+// Mult returns matrix multiplied by scalar
+func (p Matrix) Mult(f float64) Matrix {
+	prod, _ := p.Prod(New([]float64{f}))
+	return prod
+}
+
 // Prod returns element-wise product of 2 matrices
 // [MxN] * [MxN] => [MxN]  // case 1
 // [MxN] * [1x1] => [MxN]  // case 2
 // [1x1] * [1x1] => [1x1]  // case 3 - same as case 1
 func (p Matrix) Prod(o Matrix) (Matrix, error) {
-	M := len(p)
-	N := len(p[0])
-	O := len(o)
-	P := len(o[0])
-	if (M == O && N == P) || (M*N == 1 && O*P == 1) {
+	M, N := p.Shape()
+	O, P := o.Shape()
+	if M == O && N == P {
 		var prod Matrix = make([]vector.Vec, M)
 		for i := 0; i < M; i++ {
 			prod[i] = vector.Zero(N)
@@ -104,32 +105,29 @@ func (p Matrix) Prod(o Matrix) (Matrix, error) {
 			}
 		}
 		return prod, nil
-		// } else if M*N == 1 && O*P == 1 {
-		// 	return New(vector.Make(p[0][0] * o[0][0])), nil
-	} else {
-		if (M*N == 1) || (O*P == 1) {
-			scalar := o[0][0]
-			mat := p
-			if M*N == 1 {
-				scalar = p[0][0]
-				mat = o
-			}
-			prod := make([]vector.Vec, len(mat))
-			for i := 0; i < len(mat); i++ {
-				prod[i] = vector.Zero(len(mat[0]))
-			}
-			for i := 0; i < len(mat); i++ {
-				for j := 0; j < len(mat[0]); j++ {
-					prod[i][j] = mat[i][j] * scalar
-				}
-			}
-			return prod, nil
+	}
+	if (M*N == 1) || (O*P == 1) {
+		scalar := o[0][0]
+		mat := p
+		if M*N == 1 {
+			scalar = p[0][0]
+			mat = o
 		}
+		prod := make([]vector.Vec, len(mat))
+		for i := 0; i < len(mat); i++ {
+			prod[i] = vector.Zero(len(mat[0]))
+		}
+		for i := 0; i < len(mat); i++ {
+			for j := 0; j < len(mat[0]); j++ {
+				prod[i][j] = mat[i][j] * scalar
+			}
+		}
+		return prod, nil
 	}
 	return nil, errors.New("invalid operation: matrices size incompatible")
 }
 
-// T returns the transformed matrix
+// T returns the transformed matrix [M x N] => [N x M]
 func (p Matrix) T() Matrix {
 	var mat Matrix = make([]vector.Vec, len(p[0]))
 	for i := 0; i < len(p[0]); i++ {
@@ -146,7 +144,7 @@ func (p Matrix) T() Matrix {
 // Equal tells whether a and b contain the same elements.
 // A nil argument is equivalent to an empty slice.
 func (p Matrix) Equal(b Matrix) bool {
-	if len(p) != len(b) || len(p[0]) != len(b[0]) {
+	if !p.SameShape(b) {
 		return false
 	}
 	for i, v := range p {
@@ -155,4 +153,22 @@ func (p Matrix) Equal(b Matrix) bool {
 		}
 	}
 	return true
+}
+
+// Shape returns the shape of the matrix as a [2x1] vector
+func (p Matrix) Shape() (int, int) {
+	return len(p), len(p[0])
+}
+
+// ShapeString returns a string
+func (p Matrix) ShapeString() string {
+	M, N := p.Shape()
+	return fmt.Sprintf("[%vx%v]", M, N)
+}
+
+// SameShape returns true if matrics are of same shape
+func (p Matrix) SameShape(o Matrix) bool {
+	M, N := p.Shape()
+	O, P := o.Shape()
+	return M == O && N == P
 }

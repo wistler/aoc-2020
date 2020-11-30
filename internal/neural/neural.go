@@ -2,6 +2,7 @@ package neural
 
 import (
 	"fmt"
+	"log"
 	"math"
 	"math/rand"
 
@@ -27,7 +28,9 @@ func sigmoidV(x vector.Vec) vector.Vec {
 func sigmoidM(x matrix.Matrix) matrix.Matrix {
 	res := matrix.Zero(len(x), len(x[0]))
 	for i := 0; i < len(x); i++ {
-		res[i] = sigmoidV(x[i])
+		for j := 0; j < len(x[0]); j++ {
+			res[i][j] = sigmoid(x[i][j])
+		}
 	}
 	return res
 }
@@ -47,79 +50,108 @@ func sigmoidDerivativeV(x vector.Vec) vector.Vec {
 	return res
 }
 
-// Network is
-type Network struct {
-	weights vector.Vec
+func sigmoidDerivativeM(x matrix.Matrix) matrix.Matrix {
+	res := matrix.Zero(len(x), len(x[0]))
+	for i := 0; i < len(x); i++ {
+		for j := 0; j < len(x[0]); j++ {
+			res[i][j] = sigmoidDerivative(x[i][j])
+		}
+	}
+	return res
 }
 
-// NewNetwork creates a new network that takes n inputs, and 1 output
-func NewNetwork(n int) Network {
+// Network is
+type Network struct {
+	nIn    int
+	nOut   int
+	layer0 matrix.Matrix
+}
 
+// CreateNetwork creates a new network with 1 layer, that takes nIn inputs, and nOut output
+func CreateNetwork(nIn, nOut int) Network {
 	nn := Network{
-		weights: vector.Zero(n),
+		nIn:    nIn,
+		nOut:   nOut,
+		layer0: createNetworkLayer(nIn, nOut),
 	}
-
-	for i := 0; i < len(nn.weights); i++ {
-		nn.weights[i] = 2*rand.Float64() - 1
-	}
-
 	return nn
 }
 
+// a layer is a matrix of size [nOut x nIn]
+func createNetworkLayer(nIn, nOut int) []vector.Vec {
+	layer := matrix.Zero(nOut, nIn)
+	for o := 0; o < nOut; o++ {
+		for i := 0; i < nIn; i++ {
+			layer[o][i] = 2*rand.Float64() - 1
+		}
+	}
+	return layer
+}
+
 // Train trains the neural net through a process of trial and error
-func (nn *Network) Train(inputs matrix.Matrix, outputs vector.Vec, iterations int) error {
-	if len(inputs) != len(outputs) {
-		return fmt.Errorf("number of inputs (%v) do not match number of outputs (%v)", len(inputs), len(outputs))
+// Given NNet shape is [nIn, ... nOut]
+// Input matrix must be of size [? x nIn]
+// Result matrix is of size [? x nOut]
+func (nn *Network) Train(trainingInputs matrix.Matrix, trainingOutputs matrix.Matrix, maxIterations int, maxError float64) error {
+	if len(trainingInputs) != len(trainingOutputs) {
+		return fmt.Errorf("number of input sets (%v) do not match number of output sets (%v)", len(trainingInputs), len(trainingOutputs))
 	}
-	if len(inputs[0]) != len(nn.weights) {
-		return fmt.Errorf("input dimensionality (%v) not compatible with NNet (%v)", len(inputs[0]), len(nn.weights))
+	if len(trainingInputs[0]) != nn.nIn {
+		return fmt.Errorf("input dimensionality (%v) not compatible with NNet (nIn = %v)", len(trainingInputs[0]), nn.nIn)
 	}
-
-	for i := 0; i < iterations; i++ {
-		out, err := nn.ThinkM(inputs)
-		if err != nil {
-			return fmt.Errorf("Train: error: %v", err)
-		}
-		e, _ := outputs.Sum(out.Mult(-1))
-		exsd, _ := matrix.New(sigmoidDerivativeV(out)).Prod(matrix.New(e))
-		adj, _ := inputs.T().Dot(exsd.T())
-		adjV, _ := adj.AsVec()
-		// log.Printf("-- Iteration %d --\n", i)
-		// log.Printf("Output (Act) = %v\n", out)
-		// log.Printf("Output (Exp) = %v\n", outputs)
-		// log.Printf("Output Error = %v\n", e)
-		// log.Printf("Correction   = %v\n", exsd)
-		// log.Printf("Adjustment   = %v\n", adjV)
-		err = nn.weights.Add(adjV)
-		if err != nil {
-			return err
-		}
+	if len(trainingOutputs[0]) != nn.nOut {
+		return fmt.Errorf("output dimensionality (%v) not compatible with NNet (nOut = %v)", len(trainingOutputs[0]), nn.nOut)
 	}
 
+	for i := 0; i < maxIterations; i++ {
+		o, _ := nn.Think(trainingInputs)        // out := Think([? x nIn]) => [? x nOut]
+		e, _ := trainingOutputs.Sum(o.Mult(-1)) // e := [? x nOut] - [? x nOut]
+		se, _ := sigmoidDerivativeM(o).Prod(e)  // exsd := [? x nOut] * [? x nOut]
+		adj, _ := trainingInputs.T().Dot(se)    // adj := [? x nIn]T · [? x nOut] = [nIn x nOut]
+		nn.layer0, _ = nn.layer0.Sum(adj.T())   // nn.layer0 := [nOut x nIn] + [nIn x nOut]T
+
+		withinErrorThreshold := true
+		for _, er := range e {
+			for _, err := range er {
+				if math.Abs(err) > maxError {
+					withinErrorThreshold = false
+					break
+				}
+			}
+			if !withinErrorThreshold {
+				break
+			}
+		}
+		// if i%10000 == 0 || withinErrorThreshold {
+		// 	log.Printf("-- Iteration %d --\n", i)
+		// 	log.Printf("Output (Act) = %v\n", o)
+		// 	log.Printf("Output (Exp) = %v\n", trainingOutputs)
+		// 	log.Printf("Output Error = %v\n", e)
+		// 	log.Printf("Correction   = %v\n", se)
+		// 	log.Printf("Adjustment   = %v\n", adj)
+		// }
+
+		if withinErrorThreshold {
+			log.Printf("Error threshold reached. Stopping at iteration: %v", i)
+			break
+		}
+	}
+
+	log.Printf("New Weights  = %v\n", nn.layer0)
 	return nil
 }
 
-// Think returns output for 1 node
-func (nn *Network) Think(inputs vector.Vec) (float64, error) {
-	dot, err := inputs.Dot(nn.weights)
-	if err != nil {
-		return 0, err
+// Think processes matrix of inputs together
+// Input matrix must be of size [? x nIn]
+// Result matrix is of size [? x nOut]
+func (nn Network) Think(inputs matrix.Matrix) (matrix.Matrix, error) {
+	if len(inputs[0]) != nn.nIn {
+		return nil, fmt.Errorf("input dimensionality (%v) not compatible with NNet (nIn = %v)", len(inputs[0]), nn.nIn)
 	}
-	return sigmoid(dot), nil
-}
-
-// ThinkM processes matrix of inputs together
-func (nn Network) ThinkM(inputs matrix.Matrix) (vector.Vec, error) {
-	if len(nn.weights) != len(inputs[0]) {
-		return nil, fmt.Errorf("Think: expected input width: %v, got: %v", len(nn.weights), len(inputs[0]))
-	}
-	dot, err := inputs.Dot(matrix.New(nn.weights).T())
+	// [? x nIn] · [nOut x nIn]T => [? x nOut]
+	dot, err := inputs.Dot(nn.layer0.T())
 	if err != nil {
 		return nil, fmt.Errorf("Think: error occurred: %v", err)
 	}
-	v, err := dot.AsVec()
-	if err != nil {
-		return nil, fmt.Errorf("Think: error occurred: %v", err)
-	}
-	return sigmoidV(v), nil
+	return sigmoidM(dot), nil
 }
