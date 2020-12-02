@@ -53,6 +53,4 @@ func TestPart1(t *testing.T) {
 
 	_, err = part2(input)
 	check(err)
-
-	// t.Fatalf("Part 1: %v\nPart 2: %v", part1Ans, part2Ans)
 }
