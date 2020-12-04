@@ -28,7 +28,7 @@ func TestWithSampleData(t *testing.T) {
 	}
 }
 
-func TestPart1(t *testing.T) {
+func TestWithRealData(t *testing.T) {
 	data, err := ioutil.ReadFile("./input.txt")
 	check(err)
 	input := strings.Split(string(data), "\r\n")

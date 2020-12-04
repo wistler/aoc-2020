@@ -23,27 +23,24 @@ func TestWithSampleData(t *testing.T) {
 	part1Ans := 7
 	part2Ans := 336
 
-	got, err := part1(input)
-	check(err)
+	got := part1(input)
 	if got != part1Ans {
 		t.Fatalf(`Part 1: got %v, but want %v`, got, part1Ans)
 	}
 
-	got, err = part2(input)
-	check(err)
+	got = part2(input)
 	if got != part2Ans {
 		t.Fatalf(`Part 2: got %v, but want %v`, got, part1Ans)
 	}
 }
 
-func TestPart1(t *testing.T) {
+func TestWithRealData(t *testing.T) {
 	data, err := ioutil.ReadFile("./input.txt")
-	check(err)
+	if err != nil {
+		panic(err)
+	}
 	input := strings.Split(string(data), "\r\n")
 
-	_, err = part1(input)
-	check(err)
-
-	_, err = part2(input)
-	check(err)
+	part1(input)
+	part2(input)
 }
