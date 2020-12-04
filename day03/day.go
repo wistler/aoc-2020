@@ -6,12 +6,14 @@ import (
 	"github.com/wistler/aoc-2020/internal/vector"
 )
 
+const treeChar = byte('#')
+
 func checkSlope(mapStrip []string, pos vector.Vec, slope vector.Vec) int {
 	treesHit := 0
 	y := int(pos[1])
 	for y < len(mapStrip) {
 		line := mapStrip[y]
-		if string(line[int(pos[0])%len(line)]) == "#" {
+		if line[int(pos[0])%len(line)] == treeChar {
 			treesHit++
 		}
 		pos.Add(slope)
