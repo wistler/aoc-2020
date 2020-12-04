@@ -1,5 +1,7 @@
 # README
 
+![Tests](https://github.com/wistler/aoc-2020/workflows/Tests/badge.svg)
+
 Learning repo for puzzles of `Advent Of Code 2020`, using Go lang.
 
 To run the solution of a given day, from the project root dir, run:
