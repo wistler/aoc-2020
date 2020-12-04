@@ -1,10 +1,10 @@
 package day01
 
 import (
-	"io/ioutil"
 	"strconv"
-	"strings"
 	"testing"
+
+	"github.com/wistler/aoc-2020/internal/io"
 )
 
 func check(e error) {
@@ -38,17 +38,16 @@ func TestWithSampleData(t *testing.T) {
 }
 
 func TestWithRealData(t *testing.T) {
-	data, err := ioutil.ReadFile("./input.txt")
-	check(err)
-	tmp := strings.Split(string(data), "\r\n")
 
+	tmp := io.ReadInputFile("./input.txt")
 	input := make([]int, len(tmp))
 	for i, t := range tmp {
-		input[i], err = strconv.Atoi(t)
+		ti, err := strconv.Atoi(t)
 		check(err)
+		input[i] = ti
 	}
 
-	_, err = part1(input)
+	_, err := part1(input)
 	check(err)
 
 	_, err = part2(input)

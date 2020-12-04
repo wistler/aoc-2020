@@ -1,9 +1,9 @@
 package day02
 
 import (
-	"io/ioutil"
-	"strings"
 	"testing"
+
+	"github.com/wistler/aoc-2020/internal/io"
 )
 
 func TestWithSampleData(t *testing.T) {
@@ -29,11 +29,9 @@ func TestWithSampleData(t *testing.T) {
 }
 
 func TestWithRealData(t *testing.T) {
-	data, err := ioutil.ReadFile("./input.txt")
-	check(err)
-	input := strings.Split(string(data), "\r\n")
+	input := io.ReadInputFile("./input.txt")
 
-	_, err = part1(input)
+	_, err := part1(input)
 	check(err)
 
 	_, err = part2(input)
