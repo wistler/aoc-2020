@@ -19,31 +19,31 @@ func Equal(p []int, b []int) bool {
 }
 
 func TestGetHalf(t *testing.T) {
-	h := getHalf([]int{0, 127}, true)
+	h := getHalfOfRange([]int{0, 127}, true)
 	e := []int{0, 63}
 	if !Equal(h, e) {
 		t.Fatalf("Expected: %v, Got: %v", e, h)
 	}
 
-	h = getHalf([]int{0, 127}, false)
+	h = getHalfOfRange([]int{0, 127}, false)
 	e = []int{64, 127}
 	if !Equal(h, e) {
 		t.Fatalf("Expected: %v, Got: %v", e, h)
 	}
 
-	h = getHalf([]int{64, 127}, true)
+	h = getHalfOfRange([]int{64, 127}, true)
 	e = []int{64, 95}
 	if !Equal(h, e) {
 		t.Fatalf("Expected: %v, Got: %v", e, h)
 	}
 
-	h = getHalf([]int{0, 63}, false)
+	h = getHalfOfRange([]int{0, 63}, false)
 	e = []int{32, 63}
 	if !Equal(h, e) {
 		t.Fatalf("Expected: %v, Got: %v", e, h)
 	}
 
-	h = getHalf([]int{0, 63}, true)
+	h = getHalfOfRange([]int{0, 63}, true)
 	e = []int{0, 31}
 	if !Equal(h, e) {
 		t.Fatalf("Expected: %v, Got: %v", e, h)
