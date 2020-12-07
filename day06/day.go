@@ -67,7 +67,7 @@ func getGroups(input []string) [][]string {
 }
 
 func part1(input []string) int {
-	log.SetPrefix("Day 5: Part 1: ")
+	log.SetPrefix("Day 6: Part 1: ")
 	log.SetFlags(0)
 
 	groups := getGroups(input)
@@ -81,7 +81,7 @@ func part1(input []string) int {
 }
 
 func part2(input []string) int {
-	log.SetPrefix("Day 5: Part 2: ")
+	log.SetPrefix("Day 6: Part 2: ")
 	log.SetFlags(0)
 
 	groups := getGroups(input)
