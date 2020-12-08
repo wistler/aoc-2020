@@ -18,3 +18,29 @@ func RemoveIndex(from *[]string, index int) {
 	f = f[:len(f)-1]
 	*from = f
 }
+
+// EqualI checks if two int slices are equal
+func EqualI(p []int, b []int) bool {
+	if len(p) != len(b) {
+		return false
+	}
+	for i, v := range p {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
+}
+
+// EqualS checks if two int slices are equal
+func EqualS(p []string, b []string) bool {
+	if len(p) != len(b) {
+		return false
+	}
+	for i, v := range p {
+		if v != b[i] {
+			return false
+		}
+	}
+	return true
+}
