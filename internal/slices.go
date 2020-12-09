@@ -10,6 +10,16 @@ func Contains(haystack []string, needle string) (bool, int) {
 	return false, -1
 }
 
+// ContainsNumber for int[]
+func ContainsNumber(haystack []int, needle int) (bool, int) {
+	for i, r := range haystack {
+		if r == needle {
+			return true, i
+		}
+	}
+	return false, -1
+}
+
 // RemoveIndex pops element at given index of slice
 func RemoveIndex(from *[]string, index int) {
 	f := *from
@@ -43,4 +53,35 @@ func EqualS(p []string, b []string) bool {
 		}
 	}
 	return true
+}
+
+// SumOf sum of
+func SumOf(numbers []int) int {
+	sum := 0
+	for _, n := range numbers {
+		sum += n
+	}
+	return sum
+}
+
+// Min min
+func Min(numbers []int) int {
+	min := numbers[0]
+	for _, n := range numbers {
+		if min > n {
+			min = n
+		}
+	}
+	return min
+}
+
+// Max max
+func Max(numbers []int) int {
+	max := numbers[0]
+	for _, n := range numbers {
+		if max < n {
+			max = n
+		}
+	}
+	return max
 }
