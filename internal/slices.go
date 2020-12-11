@@ -1,5 +1,7 @@
 package internal
 
+import "hash/fnv"
+
 // Contains searches for needle in haystack. If found, returns index.
 func Contains(haystack []string, needle string) (bool, int) {
 	for i, r := range haystack {
@@ -29,30 +31,65 @@ func RemoveIndex(from *[]string, index int) {
 	*from = f
 }
 
-// EqualI checks if two int slices are equal
-func EqualI(p []int, b []int) bool {
-	if len(p) != len(b) {
+func hash(s string) uint32 {
+	h := fnv.New32a()
+	h.Write([]byte(s))
+	return h.Sum32()
+}
+
+// Interface is a type for Equal check; inspired from go sort package
+type Interface interface {
+	len() int
+	getHash(i int) uint32
+}
+
+type stringSlice []string
+type intSlice []int
+
+func (p stringSlice) len() int             { return len(p) }
+func (p stringSlice) getHash(i int) uint32 { return hash(p[i]) }
+func (p intSlice) len() int                { return len(p) }
+func (p intSlice) getHash(i int) uint32    { return uint32(p[i]) }
+
+// Equal checks if two data slices are equal
+func Equal(a Interface, b Interface) bool {
+	if a.len() != b.len() {
 		return false
 	}
-	for i, v := range p {
-		if v != b[i] {
+	for i := 0; i < a.len(); i++ {
+		if a.getHash(i) != b.getHash(i) {
 			return false
 		}
 	}
 	return true
 }
 
-// EqualS checks if two int slices are equal
-func EqualS(p []string, b []string) bool {
-	if len(p) != len(b) {
-		return false
-	}
-	for i, v := range p {
-		if v != b[i] {
-			return false
-		}
-	}
-	return true
+// IntsAreEqual checks if two int slices are equal
+func IntsAreEqual(a []int, b []int) bool {
+	return Equal(intSlice(a), intSlice(b))
+}
+
+// StringsAreEqual checks if two int slices are equal
+func StringsAreEqual(a []string, b []string) bool {
+	return Equal(stringSlice(a), stringSlice(b))
+}
+
+// ints is a slice of ints
+type ints []int
+
+// Sum returns sum of all elements in slice
+func (p ints) Sum() int {
+	return SumOf(p)
+}
+
+// Min returns lowest number in slice
+func (p ints) Min() int {
+	return Min(p)
+}
+
+// Max returns highest number in slice
+func (p ints) Max() int {
+	return Max(p)
 }
 
 // SumOf sum of
