@@ -2,6 +2,7 @@ package io
 
 import (
 	"io/ioutil"
+	"strconv"
 	"strings"
 )
 
@@ -25,4 +26,18 @@ func ReadInputFile(path string) []string {
 	check(err)
 
 	return SplitOnNewLines(string(data))
+}
+
+// ReadInputFileAsInts returns all line in the file as a int slice
+func ReadInputFileAsInts(path string) []int {
+	tmp := ReadInputFile("./input.txt")
+	input := make([]int, len(tmp))
+	for i, t := range tmp {
+		ti, err := strconv.Atoi(t)
+		if err != nil {
+			panic(err)
+		}
+		input[i] = ti
+	}
+	return input
 }
