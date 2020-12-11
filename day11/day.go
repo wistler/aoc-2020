@@ -25,7 +25,7 @@ var dirs []vector.Vec = []vector.Vec{
 	vector.Make(+1, +1),
 }
 
-func isOccupied(seatMap [][]string, center vector.Vec, dir vector.Vec, firstVisible bool) bool {
+func isOccupied(seatMap matrix.String, center vector.Vec, dir vector.Vec, firstVisible bool) bool {
 	seat := floor
 	pos := center
 	for {
@@ -34,7 +34,7 @@ func isOccupied(seatMap [][]string, center vector.Vec, dir vector.Vec, firstVisi
 		if err != nil {
 			panic(err)
 		}
-		seat = matrix.Get(seatMap, pos, "x")
+		seat = seatMap.Get(pos, "x")
 		if !firstVisible {
 			// only look at the vert first position in given direction
 			break
@@ -47,7 +47,7 @@ func isOccupied(seatMap [][]string, center vector.Vec, dir vector.Vec, firstVisi
 	return seat == occupied
 }
 
-func adjOccupied(seatMap [][]string, r, c int, firstVisible bool) int {
+func adjOccupied(seatMap matrix.String, r, c int, firstVisible bool) int {
 	center := vector.Make(float64(r), float64(c))
 	adjOccupied := 0
 	for _, dir := range dirs {
@@ -58,13 +58,10 @@ func adjOccupied(seatMap [][]string, r, c int, firstVisible bool) int {
 	return adjOccupied
 }
 
-func sim(seatMap [][]string, occupancyLimit int, firstVisible bool) [][]string {
-	R := len(seatMap)
-	C := len(seatMap[0])
-	nextSeatMap := make([][]string, R)
+func sim(seatMap matrix.String, occupancyLimit int, firstVisible bool) matrix.String {
+	R, C := seatMap.Shape()
+	nextSeatMap := matrix.StringMatrix(R, C)
 	for r := 0; r < R; r++ {
-		nextSeatMap[r] = make([]string, C)
-
 		for c := 0; c < C; c++ {
 			nextSeatMap[r][c] = seatMap[r][c]
 			if seatMap[r][c] == floor {
@@ -82,7 +79,7 @@ func sim(seatMap [][]string, occupancyLimit int, firstVisible bool) [][]string {
 	return nextSeatMap
 }
 
-func toSeatMap(input []string) [][]string {
+func toSeatMap(input []string) matrix.String {
 	seatMap := make([][]string, len(input))
 	for i, row := range input {
 		seatMap[i] = strings.Split(row, "")
@@ -95,18 +92,15 @@ func part1(input []string) int {
 	log.SetFlags(0)
 
 	seatMap := toSeatMap(input)
-	steps := 0
-	for ; ; steps++ {
+	for {
 		newMap := sim(seatMap, 4, false)
-		if matrix.Equal(newMap, seatMap) {
+		if newMap.Equal(seatMap) {
 			break
 		}
 		seatMap = newMap
 	}
 
-	sum := matrix.Count(seatMap, occupied)
-
-	log.Printf("At step: %v\n", steps)
+	sum := seatMap.Count(occupied)
 	log.Printf("Answer: %v", sum)
 	return sum
 }
@@ -116,18 +110,15 @@ func part2(input []string) int {
 	log.SetFlags(0)
 
 	seatMap := toSeatMap(input)
-	steps := 0
-	for ; ; steps++ {
+	for {
 		newMap := sim(seatMap, 5, true)
-		if matrix.Equal(newMap, seatMap) {
+		if newMap.Equal(seatMap) {
 			break
 		}
 		seatMap = newMap
 	}
 
-	log.Printf("At step: %v\n", steps)
-	sum := matrix.Count(seatMap, occupied)
-
+	sum := seatMap.Count(occupied)
 	log.Printf("Answer: %v", sum)
 	return sum
 }
