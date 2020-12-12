@@ -3,6 +3,7 @@ package vector
 import (
 	"errors"
 	"fmt"
+	"math"
 	"strconv"
 	"strings"
 )
@@ -92,4 +93,13 @@ func (p Vec) Equal(b Vec) bool {
 		}
 	}
 	return true
+}
+
+// ManhattenDistance returns the manhattan distance
+func (p Vec) ManhattenDistance() float64 {
+	dist := 0.0
+	for _, v := range p {
+		dist += math.Abs(v)
+	}
+	return dist
 }

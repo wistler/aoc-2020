@@ -22,6 +22,16 @@ func ContainsNumber(haystack []int, needle int) (bool, int) {
 	return false, -1
 }
 
+// ContainsRune for rune[]
+func ContainsRune(haystack []rune, needle rune) (bool, int) {
+	for i, r := range haystack {
+		if r == needle {
+			return true, i
+		}
+	}
+	return false, -1
+}
+
 // RemoveIndex pops element at given index of slice
 func RemoveIndex(from *[]string, index int) {
 	f := *from
