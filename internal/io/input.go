@@ -41,3 +41,17 @@ func ReadInputFileAsInts(path string) []int {
 	}
 	return input
 }
+
+// SplitIntoIntArr hi
+func SplitIntoIntArr(line string, sep string) []int {
+	parts := strings.Split(line, sep)
+	result := []int{}
+	for _, p := range parts {
+		i, err := strconv.Atoi(p)
+		if err != nil {
+			panic(err)
+		}
+		result = append(result, i)
+	}
+	return result
+}
