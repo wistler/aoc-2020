@@ -6,7 +6,7 @@ import (
 	"github.com/wistler/aoc-2020/internal/io"
 )
 
-func TestSampleData(t *testing.T) {
+func TestPart1WithSampleData(t *testing.T) {
 	testCases := []struct {
 		line string
 		ans  int
@@ -19,15 +19,17 @@ func TestSampleData(t *testing.T) {
 		{line: "((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2", ans: 13632},
 	}
 	for _, tC := range testCases {
-		got := solve(tC.line, false)
+		got := solve(tC.line, false, false)
 		want := tC.ans
 		if got != want {
-			solve(tC.line, true)
+			solve(tC.line, false, true)
 			t.Fatalf("Part 1: Got: %v, but wanted: %v", got, want)
 		}
 	}
+}
 
-	testCases = []struct {
+func TestPart2WithSampleData(t *testing.T) {
+	testCases := []struct {
 		line string
 		ans  int
 	}{
@@ -39,11 +41,11 @@ func TestSampleData(t *testing.T) {
 		{line: "((2 + 4 * 9) * (6 + 9 * 8 + 6) + 6) + 2 + 4 * 2", ans: 23340},
 	}
 	for _, tC := range testCases {
-		got := solve(tC.line, false)
+		got := solve(tC.line, true, false)
 		want := tC.ans
 		if got != want {
-			solve(tC.line, true)
-			t.Fatalf("Part 1: Got: %v, but wanted: %v", got, want)
+			solve(tC.line, true, true)
+			t.Fatalf("Part 2: Got: %v, but wanted: %v", got, want)
 		}
 	}
 }
@@ -52,5 +54,5 @@ func TestWithRealData(t *testing.T) {
 	input := io.ReadInputFile("./input.txt")
 
 	part1(input)
-	// part2(input)
+	part2(input)
 }
