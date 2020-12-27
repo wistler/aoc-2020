@@ -65,11 +65,19 @@ type Interface interface {
 
 type stringSlice []string
 type intSlice []int
+type boolSlice []bool
 
 func (p stringSlice) len() int             { return len(p) }
 func (p stringSlice) getHash(i int) uint32 { return hash(p[i]) }
 func (p intSlice) len() int                { return len(p) }
 func (p intSlice) getHash(i int) uint32    { return uint32(p[i]) }
+func (p boolSlice) len() int               { return len(p) }
+func (p boolSlice) getHash(i int) uint32 {
+	if p[i] {
+		return 1
+	}
+	return 0
+}
 
 // Equal checks if two data slices are equal
 func Equal(a Interface, b Interface) bool {
@@ -87,6 +95,11 @@ func Equal(a Interface, b Interface) bool {
 // IntsAreEqual checks if two int slices are equal
 func IntsAreEqual(a []int, b []int) bool {
 	return Equal(intSlice(a), intSlice(b))
+}
+
+// BoolsAreEqual checks if two bool slices are equal
+func BoolsAreEqual(a []bool, b []bool) bool {
+	return Equal(boolSlice(a), boolSlice(b))
 }
 
 // StringsAreEqual checks if two int slices are equal
