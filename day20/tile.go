@@ -1,6 +1,32 @@
 package day20
 
-import "fmt"
+import (
+	"fmt"
+
+	"github.com/wistler/aoc-2020/internal"
+)
+
+type pixel struct {
+	data bool
+}
+
+type pixels []pixel
+type image []pixels
+
+func (p pixels) Len() int {
+	return len(p)
+}
+
+func (p pixels) GetHash(i int) uint32 {
+	if p[i].data {
+		return 1
+	}
+	return 0
+}
+
+func pixelsMatch(a pixels, b pixels) bool {
+	return internal.Equal(pixels(a), pixels(b))
+}
 
 type tileState struct {
 	rotated int
@@ -9,20 +35,20 @@ type tileState struct {
 
 type tile struct {
 	id       int
-	rawData  [][]bool
+	rawData  image
 	faceDown bool
 	rotation int
 	links    [4]int
 }
 
-func toStr(bit bool) string {
-	if bit {
+func toStr(bit pixel) string {
+	if bit.data {
 		return "#"
 	}
 	return "."
 }
 
-func toString(row []bool) string {
+func toString(row pixels) string {
 	str := ""
 	for _, b := range row {
 		str += toStr(b)
@@ -47,11 +73,11 @@ func (t tile) String() string {
 	return fmt.Sprintf("\n%d(%v%v):\n%s%s", t.id, t.rotation, f, str, links)
 }
 
-func (t *tile) getBorders() [4][]bool {
+func (t *tile) getBorders() [4]pixels {
 	return getBorders(t.rawData)
 }
 
-func (t *tile) getData() [][]bool {
+func (t *tile) getData() image {
 	return removeBorder(t.rawData)
 }
 
@@ -69,17 +95,17 @@ func (t *tile) isCorner() bool {
 	return t.getLinkCount() == 2
 }
 
-func getBorders(d [][]bool) [4][]bool {
+func getBorders(d image) [4]pixels {
 	if len(d) != len(d[0]) {
 		panic("Expected square matrix")
 	}
 
 	S := len(d) - 1
-	var borders [4][]bool
+	var borders [4]pixels
 	borders[0] = d[0]
 	borders[2] = d[S]
-	borders[1] = make([]bool, 10)
-	borders[3] = make([]bool, 10)
+	borders[1] = make(pixels, 10)
+	borders[3] = make(pixels, 10)
 	for i := 0; i <= S; i++ {
 		borders[1][i] = d[i][S]
 		borders[3][S-i] = d[i][0]
@@ -87,15 +113,15 @@ func getBorders(d [][]bool) [4][]bool {
 	return borders
 }
 
-func removeBorder(d [][]bool) [][]bool {
+func removeBorder(d image) image {
 	if len(d) != len(d[0]) {
 		panic("Expected square matrix")
 	}
 
 	S := len(d) - 2
-	data := make([][]bool, S)
+	data := make(image, S)
 	for i := 0; i < S; i++ {
-		data[i] = make([]bool, S)
+		data[i] = make(pixels, S)
 		for j := 0; j < S; j++ {
 			data[i][j] = d[i+1][j+1]
 		}
@@ -131,7 +157,7 @@ func (t *tile) getState() tileState {
 	return tileState{t.rotation, t.faceDown}
 }
 
-func rotate(data [][]bool, rotate int) [][]bool {
+func rotate(data image, rotate int) image {
 	if len(data) != len(data[0]) {
 		panic("data must be a square matrix")
 	}
@@ -139,9 +165,9 @@ func rotate(data [][]bool, rotate int) [][]bool {
 	S := len(data)
 	r := (4 + rotate) % 4
 
-	read := make([][]bool, S)
+	read := make(image, S)
 	for i := 0; i < S; i++ {
-		read[i] = make([]bool, S)
+		read[i] = make(pixels, S)
 		for j := 0; j < S; j++ {
 			switch r {
 			case 0:
@@ -158,16 +184,16 @@ func rotate(data [][]bool, rotate int) [][]bool {
 	return read
 }
 
-func flip(data [][]bool) [][]bool {
+func flip(data image) image {
 	if len(data) != len(data[0]) {
 		panic("data must be a square matrix")
 	}
 
 	S := len(data)
 
-	fli := make([][]bool, S)
+	fli := make(image, S)
 	for i := 0; i < S; i++ {
-		fli[i] = make([]bool, S)
+		fli[i] = make(pixels, S)
 	}
 	for i := 0; i < S; i++ {
 		for j := 0; j < S; j++ {

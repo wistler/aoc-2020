@@ -67,14 +67,14 @@ func parseInput(input []string) map[int]tile {
 	tiles := make(map[int]tile)
 	var t tile
 	t.id = 0
-	t.rawData = make([][]bool, 10)
+	t.rawData = make(image, 10)
 	tileLine := 0
 	for _, line := range input {
 		if strings.TrimSpace(line) == "" {
 			if t.id != 0 {
 				tiles[t.id] = t
 				t = tile{}
-				t.rawData = make([][]bool, 10)
+				t.rawData = make(image, 10)
 				tileLine = 0
 			}
 			continue
@@ -83,32 +83,32 @@ func parseInput(input []string) map[int]tile {
 		if err == nil && n == 1 {
 			continue
 		}
-		t.rawData[tileLine] = make([]bool, 10)
+		t.rawData[tileLine] = make(pixels, 10)
 		for i, ch := range line {
-			t.rawData[tileLine][i] = ch == '#'
+			t.rawData[tileLine][i] = pixel{ch == '#'}
 		}
 		tileLine++
 	}
 	return tiles
 }
 
-func stringsToBool(str string) [][]bool {
-	data := [][]bool{}
+func stringsToBool(str string) image {
+	data := image{}
 	for _, line := range io.SplitOnNewLines(str) {
 		lin := strings.TrimSpace(line)
 		if lin == "" {
 			continue
 		}
-		r := []bool{}
+		r := pixels{}
 		for _, ch := range lin {
-			r = append(r, ch == '#')
+			r = append(r, pixel{ch == '#'})
 		}
 		data = append(data, r)
 	}
 	return data
 }
 
-var monster [][]bool
+var monster image
 var states []tileState = []tileState{
 	{0, false},
 	{1, false},
@@ -128,14 +128,10 @@ func init() {
 	`)
 }
 
-func jKey(i, j int) string {
-	return fmt.Sprintf("%d,%d", i, j)
-}
-
-func zip(images ...[][]bool) [][]bool {
-	z := [][]bool{}
+func zip(images ...image) image {
+	z := image{}
 	for k := 0; k < len(images[0]); k++ {
-		zk := []bool{}
+		zk := pixels{}
 		for _, iD := range images {
 			for _, iDk := range iD[k] {
 				zk = append(zk, iDk)
@@ -146,7 +142,7 @@ func zip(images ...[][]bool) [][]bool {
 	return z
 }
 
-func display(images ...[][]bool) {
+func display(images ...image) {
 	logPrefix := log.Prefix()
 	log.SetPrefix("")
 	for k := 0; k < len(images[0]); k++ {
@@ -160,7 +156,7 @@ func display(images ...[][]bool) {
 	log.SetPrefix(logPrefix)
 }
 
-func highlightDifference(left [][]bool, right [][]bool) {
+func highlightDifference(left image, right image) {
 	logPrefix := log.Prefix()
 	log.SetPrefix("")
 	for row := 0; row < len(left); row++ {
@@ -179,10 +175,10 @@ func highlightDifference(left [][]bool, right [][]bool) {
 	log.SetPrefix(logPrefix)
 }
 
-func stitch(jigsaw map[pos]tile, tiles map[int]tile) [][]bool {
-	image := [][]bool{}
+func stitch(jigsaw map[pos]tile, tiles map[int]tile) image {
+	im := image{}
 	for i := 0; ; i++ {
-		imageRow := [][][]bool{}
+		imageRow := []image{}
 		for j := 0; ; j++ {
 			jk := pos{i, j}
 			t, ok := jigsaw[jk]
@@ -195,17 +191,17 @@ func stitch(jigsaw map[pos]tile, tiles map[int]tile) [][]bool {
 			break
 		}
 		for _, zr := range zip(imageRow...) {
-			image = append(image, zr)
+			im = append(im, zr)
 		}
 	}
-	return image
+	return im
 }
 
-func findRoughness(image [][]bool, beast [][]bool) (roughness int, foundMonsters int, workImage [][]bool, err error) {
-	workImage = make([][]bool, len(image))
-	for i := 0; i < len(image); i++ {
-		workImage[i] = make([]bool, len(image[i]))
-		copy(workImage[i], image[i])
+func findRoughness(im image, beast image) (roughness int, foundMonsters int, workImage image, err error) {
+	workImage = make(image, len(im))
+	for i := 0; i < len(im); i++ {
+		workImage[i] = make(pixels, len(im[i]))
+		copy(workImage[i], im[i])
 	}
 
 	for i := 0; i < len(workImage)-len(beast)+1; i++ {
@@ -215,8 +211,8 @@ func findRoughness(image [][]bool, beast [][]bool) (roughness int, foundMonsters
 		Search:
 			for k := 0; k < len(beast); k++ {
 				for l := 0; l < len(beast[0]); l++ {
-					if beast[k][l] {
-						if !workImage[i+k][j+l] {
+					if beast[k][l].data {
+						if !workImage[i+k][j+l].data {
 							match = false
 							break Search
 						}
@@ -228,7 +224,7 @@ func findRoughness(image [][]bool, beast [][]bool) (roughness int, foundMonsters
 				for k := 0; k < len(beast); k++ {
 					for l := 0; l < len(beast[0]); l++ {
 						// erase the beast, so it doesn't miscount
-						workImage[i+k][j+l] = workImage[i+k][j+l] && !beast[k][l]
+						workImage[i+k][j+l].data = workImage[i+k][j+l].data && !beast[k][l].data
 					}
 				}
 			}
@@ -239,7 +235,7 @@ func findRoughness(image [][]bool, beast [][]bool) (roughness int, foundMonsters
 	} else {
 		for i := 0; i < len(workImage); i++ {
 			for j := 0; j < len(workImage[0]); j++ {
-				if workImage[i][j] {
+				if workImage[i][j].data {
 					roughness++
 				}
 			}
@@ -248,14 +244,14 @@ func findRoughness(image [][]bool, beast [][]bool) (roughness int, foundMonsters
 	return
 }
 
-func findRoughnessAndMosters(image [][]bool, beast [][]bool) (int, int) {
+func findRoughnessAndMosters(im image, beast image) (int, int) {
 	r, m := 0, 0
-	w := [][]bool{}
+	w := image{}
 	var err error
 
 	log.Print("Looking for monsters..\n\n")
 	for _, st := range states {
-		ns := rotate(image, st.rotated)
+		ns := rotate(im, st.rotated)
 		if st.flipped {
 			ns = flip(ns)
 		}
@@ -290,7 +286,7 @@ func updatePairing(tiles map[int]tile) map[int]tile {
 					rb2 := ts2.getBorders()
 
 					for bi := 0; bi < 4; bi++ {
-						matched := internal.BoolsAreEqual(t1bs, rb2[bi])
+						matched := pixelsMatch(t1bs, rb2[bi])
 						// if matched {
 						// 	log.Println("Matching:", t1.id, toString(t1bs), toString(rb2[bi]), t2.id, side, si, bi, matched)
 						// }
@@ -381,7 +377,7 @@ func part2(input []string) int {
 
 	jigsaw[pos{i, j}] = tiles[cid].transform(cs)
 	used = append(used, cid)
-	log.Println("corner:", cid, "tile:", tiles[cid].id, "jKey:", jKey(i, j))
+	log.Println(pos{i, j}, "corner:", cid, "tile:", tiles[cid].id)
 	println(output.String())
 
 	j++
@@ -474,7 +470,7 @@ func part2(input []string) int {
 
 	log.Println("jigsaw size:", I, J)
 	for i := 0; i < I; i++ {
-		images := make([][][]bool, J)
+		images := make([]image, J)
 		for j := 0; j < J; j++ {
 			images[j] = jigsaw[pos{i, j}].rawData
 		}

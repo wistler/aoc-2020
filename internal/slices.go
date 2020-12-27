@@ -59,20 +59,20 @@ func hash(s string) uint32 {
 
 // Interface is a type for Equal check; inspired from go sort package
 type Interface interface {
-	len() int
-	getHash(i int) uint32
+	Len() int
+	GetHash(i int) uint32
 }
 
 type stringSlice []string
 type intSlice []int
 type boolSlice []bool
 
-func (p stringSlice) len() int             { return len(p) }
-func (p stringSlice) getHash(i int) uint32 { return hash(p[i]) }
-func (p intSlice) len() int                { return len(p) }
-func (p intSlice) getHash(i int) uint32    { return uint32(p[i]) }
-func (p boolSlice) len() int               { return len(p) }
-func (p boolSlice) getHash(i int) uint32 {
+func (p stringSlice) Len() int             { return len(p) }
+func (p stringSlice) GetHash(i int) uint32 { return hash(p[i]) }
+func (p intSlice) Len() int                { return len(p) }
+func (p intSlice) GetHash(i int) uint32    { return uint32(p[i]) }
+func (p boolSlice) Len() int               { return len(p) }
+func (p boolSlice) GetHash(i int) uint32 {
 	if p[i] {
 		return 1
 	}
@@ -81,11 +81,11 @@ func (p boolSlice) getHash(i int) uint32 {
 
 // Equal checks if two data slices are equal
 func Equal(a Interface, b Interface) bool {
-	if a.len() != b.len() {
+	if a.Len() != b.Len() {
 		return false
 	}
-	for i := 0; i < a.len(); i++ {
-		if a.getHash(i) != b.getHash(i) {
+	for i := 0; i < a.Len(); i++ {
+		if a.GetHash(i) != b.GetHash(i) {
 			return false
 		}
 	}

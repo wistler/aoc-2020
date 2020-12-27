@@ -5,8 +5,6 @@ import (
 	"os"
 	"testing"
 
-	"github.com/wistler/aoc-2020/internal"
-
 	"github.com/wistler/aoc-2020/internal/io"
 )
 
@@ -134,7 +132,7 @@ Tile 0003:
 	input := io.SplitOnNewLines(rawInput)
 	tiles := parseInput(input)
 
-	ids := [][][]bool{tiles[1].rawData, tiles[2].rawData, tiles[3].rawData}
+	ids := []image{tiles[1].rawData, tiles[2].rawData, tiles[3].rawData}
 	z := zip(ids...)
 	t.Log(len(z), len(z[0]))
 	for _, zr := range z {
@@ -344,7 +342,7 @@ func TestTransform(t *testing.T) {
 
 		t0 := tile{}
 		t0.rawData = initial
-		results := [][][]bool{}
+		results := []image{}
 		results = append(results, initial)
 		for _, st := range tC.state {
 			t0 = t0.transform(st)
@@ -353,7 +351,7 @@ func TestTransform(t *testing.T) {
 		results = append(results, final)
 
 		for i := 0; i < len(t0.rawData); i++ {
-			if !internal.BoolsAreEqual(t0.rawData[i], final[i]) {
+			if !pixelsMatch(t0.rawData[i], final[i]) {
 				t1 := tile{}
 				t1.rawData = initial
 				for _, st := range tC.state {
